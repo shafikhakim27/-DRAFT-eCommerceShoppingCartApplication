@@ -1,0 +1,39 @@
+# Maven
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+
+# IDE
+.idea/
+*.iws
+*.iml
+*.ipr
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs/
+*.log
+
+# H2 Database files
+*.h2.db
+*.trace.db
+*.lock.db
+
+# Application specific
+application-local.properties
+application-prod.properties
+
+# Temporary files
+*.tmp
+*.temp
+/tmp/
+
+# Spring Boot
+*.jar
+!**/src/main/**
+!**/src/test/**
