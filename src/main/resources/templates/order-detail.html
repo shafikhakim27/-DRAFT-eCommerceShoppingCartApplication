@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order Details - eCommerce Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/products}">
+                <i class="fas fa-shopping-bag me-2"></i>eCommerce Store
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/products}">Products</a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/cart}">
+                            <i class="fas fa-shopping-cart"></i> Cart
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/orders}">
+                            <i class="fas fa-history"></i> Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <span class="navbar-text me-3">
+                            Welcome, <span sec:authentication="name"></span>!
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-outline-light btn-sm">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container my-4">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a th:href="@{/orders}">Orders</a></li>
+                <li class="breadcrumb-item active" aria-current="page" th:text="'Order #' + ${order.id}">Order</li>
+            </ol>
+        </nav>
+        
+        <div class="row">
+            <div class="col">
+                <div class="card">
+                    <div class="card-header">
+                        <div class="row align-items-center">
+                            <div class="col">
+                                <h4 class="mb-0">Order #<span th:text="${order.id}">1</span></h4>
+                                <p class="text-muted mb-0" th:text="'Placed on ' + ${#temporals.format(order.orderDate, 'MMMM dd, yyyy \'at\' HH:mm')}">Order date</p>
+                            </div>
+                            <div class="col-auto">
+                                <span class="badge fs-6" 
+                                      th:classappend="${order.status == T(com.ecommerce.shoppingcart.model.Order.OrderStatus).PENDING} ? 'bg-warning' : 
+                                                     ${order.status == T(com.ecommerce.shoppingcart.model.Order.OrderStatus).CONFIRMED} ? 'bg-info' :
+                                                     ${order.status == T(com.ecommerce.shoppingcart.model.Order.OrderStatus).SHIPPED} ? 'bg-primary' :
+                                                     ${order.status == T(com.ecommerce.shoppingcart.model.Order.OrderStatus).DELIVERED} ? 'bg-success' : 'bg-secondary'"
+                                      th:text="${order.status}">
+                                    Status
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <!-- Order Items -->
+                        <h5>Order Items</h5>
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Product</th>
+                                        <th>Unit Price</th>
+                                        <th>Quantity</th>
+                                        <th class="text-end">Subtotal</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:each="item : ${order.orderItems}">
+                                        <td>
+                                            <div class="d-flex align-items-center">
+                                                <div class="me-3" style="width: 50px; height: 50px;">
+                                                    <div class="d-flex align-items-center justify-content-center bg-light rounded h-100">
+                                                        <i class="fas fa-image text-muted" th:if="${item.product.imageUrl == null or item.product.imageUrl == ''}"></i>
+                                                        <img th:if="${item.product.imageUrl != null and item.product.imageUrl != ''}" 
+                                                             th:src="${item.product.imageUrl}" 
+                                                             th:alt="${item.product.name}" 
+                                                             class="img-fluid rounded">
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <h6 class="mb-0" th:text="${item.product.name}">Product Name</h6>
+                                                    <small class="text-muted" th:text="${item.product.category}">Category</small>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td th:text="'$' + ${item.unitPrice}">$0.00</td>
+                                        <td th:text="${item.quantity}">1</td>
+                                        <td class="text-end" th:text="'$' + ${item.subtotal}">$0.00</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <!-- Order Summary -->
+                        <div class="row mt-4">
+                            <div class="col-md-6">
+                                <h5>Shipping Address</h5>
+                                <address th:text="${order.shippingAddress}">
+                                    Shipping address
+                                </address>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="card bg-light">
+                                    <div class="card-body">
+                                        <h5>Order Summary</h5>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Subtotal:</span>
+                                            <span th:text="'$' + ${order.totalAmount}">$0.00</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Shipping:</span>
+                                            <span class="text-success">FREE</span>
+                                        </div>
+                                        <div class="d-flex justify-content-between mb-2">
+                                            <span>Tax:</span>
+                                            <span>$0.00</span>
+                                        </div>
+                                        <hr>
+                                        <div class="d-flex justify-content-between">
+                                            <strong>Total:</strong>
+                                            <strong class="text-primary" th:text="'$' + ${order.totalAmount}">$0.00</strong>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="mt-4">
+                            <a th:href="@{/orders}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left me-2"></i>Back to Orders
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>eCommerce Store</h5>
+                    <p>Your one-stop shop for quality products.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2024 eCommerce Store. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>
