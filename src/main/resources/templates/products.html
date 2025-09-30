@@ -43,11 +43,16 @@
                     </li>
                 </ul>
                 
-                <!-- Search Form -->
+                <!-- Enhanced Search Form -->
                 <form class="d-flex me-3" th:action="@{/products}" method="get">
-                    <input class="form-control me-2" type="search" name="search" placeholder="Search products..." 
-                           th:value="${searchKeyword}">
-                    <button class="btn btn-outline-light" type="submit">
+                    <div class="search-container position-relative">
+                        <i class="fas fa-search search-icon"></i>
+                        <input class="form-control pe-2" type="search" name="search" 
+                               placeholder="Search products..." 
+                               th:value="${searchKeyword}"
+                               style="padding-left: 3rem; min-width: 250px;">
+                    </div>
+                    <button class="btn btn-outline-light ms-2" type="submit">
                         <i class="fas fa-search"></i>
                     </button>
                 </form>
@@ -107,71 +112,153 @@
 
     <!-- Main Content -->
     <main class="container my-4">
-        <!-- Page Header -->
-        <div class="row mb-4">
+        <!-- Enhanced Page Header -->
+        <div class="row mb-5">
             <div class="col">
-                <h1 class="h2">
-                    <span th:if="${selectedCategory}" th:text="${selectedCategory} + ' Products'"></span>
-                    <span th:if="${searchKeyword}" th:text="'Search Results for: ' + ${searchKeyword}"></span>
-                    <span th:if="${selectedCategory == null and searchKeyword == null}">All Products</span>
-                </h1>
-                <p class="text-muted" th:text="${#lists.size(products)} + ' products found'"></p>
-            </div>
-        </div>
-
-        <!-- Category Filter Buttons -->
-        <div class="row mb-4" th:if="${searchKeyword == null}">
-            <div class="col">
-                <div class="btn-group" role="group">
-                    <a th:href="@{/products}" class="btn btn-outline-primary" 
-                       th:classappend="${selectedCategory == null} ? 'active' : ''">All</a>
-                    <a th:each="category : ${categories}" 
-                       th:href="@{/products(category=${category})}" 
-                       th:text="${category}" 
-                       class="btn btn-outline-primary"
-                       th:classappend="${selectedCategory == category} ? 'active' : ''">Category</a>
+                <div class="text-center">
+                    <h1 class="display-5 fw-bold mb-3" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;">
+                        <i class="fas fa-store me-3"></i>
+                        <span th:if="${selectedCategory}" th:text="${selectedCategory} + ' Products'"></span>
+                        <span th:if="${searchKeyword}" th:text="'Search Results'"></span>
+                        <span th:if="${selectedCategory == null and searchKeyword == null}">Our Product Collection</span>
+                    </h1>
+                    <p class="lead text-muted mb-4">
+                        <span th:if="${searchKeyword}" th:text="'Found ' + ${totalElements} + ' products for: ' + ${searchKeyword}"></span>
+                        <span th:if="${searchKeyword == null}" th:text="'Discover ' + ${totalElements} + ' amazing products'"></span>
+                    </p>
                 </div>
             </div>
         </div>
 
-        <!-- Products Grid -->
-        <div class="row">
-            <div class="col-lg-3 col-md-4 col-sm-6 mb-4" th:each="product : ${products}">
-                <div class="card h-100">
-                    <div class="card-img-top d-flex align-items-center justify-content-center" style="height: 200px; background-color: #f8f9fa;">
-                        <i class="fas fa-image fa-3x text-muted" th:if="${product.imageUrl == null or product.imageUrl == ''}"></i>
+        <!-- Enhanced Category Filter Buttons -->
+        <div class="row mb-5" th:if="${searchKeyword == null}">
+            <div class="col">
+                <div class="d-flex justify-content-center">
+                    <div class="btn-group shadow-sm" role="group" style="border-radius: 50px; overflow: hidden;">
+                        <a th:href="@{/products}" class="btn btn-outline-primary px-4" 
+                           th:classappend="${selectedCategory == null} ? 'active' : ''">
+                           <i class="fas fa-th-large me-2"></i>All
+                        </a>
+                        <a th:each="category : ${categories}" 
+                           th:href="@{/products(category=${category})}" 
+                           th:text="${category}" 
+                           class="btn btn-outline-primary px-4"
+                           th:classappend="${selectedCategory == category} ? 'active' : ''">Category</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sorting and Results Info -->
+        <div class="row mb-4" th:if="${!#lists.isEmpty(products)}">
+            <div class="col-md-6">
+                <p class="text-muted mb-0">
+                    Showing <strong th:text="${(currentPage * size) + 1}">1</strong> - 
+                    <strong th:text="${Math.min((currentPage + 1) * size, totalElements)}">12</strong> 
+                    of <strong th:text="${totalElements}">24</strong> products
+                </p>
+            </div>
+            <div class="col-md-6">
+                <div class="d-flex justify-content-end align-items-center gap-3">
+                    <label class="form-label mb-0 fw-semibold">Sort by:</label>
+                    <select class="form-select form-select-sm w-auto" id="sortSelect" onchange="updateSort()">
+                        <option value="name_asc" th:selected="${sortBy == 'name' and sortDir == 'asc'}">Name (A-Z)</option>
+                        <option value="name_desc" th:selected="${sortBy == 'name' and sortDir == 'desc'}">Name (Z-A)</option>
+                        <option value="price_asc" th:selected="${sortBy == 'price' and sortDir == 'asc'}">Price (Low to High)</option>
+                        <option value="price_desc" th:selected="${sortBy == 'price' and sortDir == 'desc'}">Price (High to Low)</option>
+                        <option value="category_asc" th:selected="${sortBy == 'category' and sortDir == 'asc'}">Category</option>
+                    </select>
+                    
+                    <label class="form-label mb-0 fw-semibold ms-3">Show:</label>
+                    <select class="form-select form-select-sm w-auto" id="sizeSelect" onchange="updatePageSize()">
+                        <option value="6" th:selected="${size == 6}">6</option>
+                        <option value="12" th:selected="${size == 12}">12</option>
+                        <option value="24" th:selected="${size == 24}">24</option>
+                        <option value="48" th:selected="${size == 48}">48</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enhanced Products Grid -->
+        <div class="row g-4">
+            <div class="col-xl-3 col-lg-4 col-md-6 col-sm-6 mb-4" th:each="product : ${products}">
+                <div class="card h-100 product-card border-0 shadow-sm">
+                    <!-- Enhanced Product Image -->
+                    <div class="position-relative overflow-hidden" style="height: 250px; border-radius: 16px 16px 0 0;">
+                        <div class="d-flex align-items-center justify-content-center h-100 bg-light" 
+                             th:if="${product.imageUrl == null or product.imageUrl == ''}">
+                            <i class="fas fa-image fa-3x text-muted"></i>
+                        </div>
                         <img th:if="${product.imageUrl != null and product.imageUrl != ''}" 
                              th:src="${product.imageUrl}" 
                              th:alt="${product.name}" 
-                             class="img-fluid" style="max-height: 180px;">
+                             class="product-image w-100">
+                        
+                        <!-- Stock Status Badge -->
+                        <div class="position-absolute top-0 end-0 m-3">
+                            <span th:if="${product.stockQuantity > 0}" 
+                                  class="badge bg-success rounded-pill">
+                                <i class="fas fa-check-circle me-1"></i>In Stock
+                            </span>
+                            <span th:if="${product.stockQuantity == 0}" 
+                                  class="badge bg-danger rounded-pill">
+                                <i class="fas fa-times-circle me-1"></i>Out of Stock
+                            </span>
+                        </div>
                     </div>
-                    <div class="card-body d-flex flex-column">
-                        <h5 class="card-title" th:text="${product.name}">Product Name</h5>
-                        <p class="card-text text-muted small" th:text="${product.category}">Category</p>
-                        <p class="card-text flex-grow-1" th:text="${#strings.abbreviate(product.description, 100)}">Product description...</p>
-                        <div class="mt-auto">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <span class="h5 text-primary mb-0" th:text="'$' + ${product.price}">$0.00</span>
-                                <span class="text-muted small" 
-                                      th:text="${product.stockQuantity} + ' in stock'"
-                                      th:classappend="${product.stockQuantity == 0} ? 'text-danger' : ''">In stock</span>
+                    
+                    <!-- Enhanced Card Body -->
+                    <div class="card-body d-flex flex-column p-4">
+                        <!-- Category Badge -->
+                        <div class="mb-2">
+                            <span class="badge rounded-pill" 
+                                  style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); font-size: 0.7rem;"
+                                  th:text="${product.category}">Category</span>
+                        </div>
+                        
+                        <!-- Product Title -->
+                        <h5 class="card-title fw-bold mb-3" th:text="${product.name}">Product Name</h5>
+                        
+                        <!-- Product Description -->
+                        <p class="card-text text-muted flex-grow-1 mb-3" 
+                           th:text="${#strings.abbreviate(product.description, 120)}">Product description...</p>
+                        
+                        <!-- Price and Stock Info -->
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="price-tag fs-4 fw-bold" th:text="'$' + ${product.price}">$0.00</span>
+                            <div class="text-end">
+                                <small class="stock-info d-block" 
+                                       th:text="${product.stockQuantity} + ' available'">Stock info</small>
                             </div>
-                            <div class="d-grid gap-2">
-                                <a th:href="@{/products/{id}(id=${product.id})}" class="btn btn-outline-primary btn-sm">
-                                    <i class="fas fa-eye"></i> View Details
-                                </a>
-                                <form th:action="@{/cart/add}" method="post" sec:authorize="isAuthenticated()">
-                                    <input type="hidden" name="productId" th:value="${product.id}">
-                                    <input type="hidden" name="quantity" value="1">
-                                    <button type="submit" class="btn btn-primary btn-sm w-100" 
-                                            th:disabled="${product.stockQuantity == 0}">
-                                        <i class="fas fa-cart-plus"></i> Add to Cart
-                                    </button>
-                                </form>
-                                <a th:href="@{/login}" sec:authorize="!isAuthenticated()" 
-                                   class="btn btn-primary btn-sm">
-                                    <i class="fas fa-sign-in-alt"></i> Login to Buy
-                                </a>
+                        </div>
+                        
+                        <!-- Enhanced Action Buttons -->
+                        <div class="d-grid gap-2">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <a th:href="@{/products/{id}(id=${product.id})}" 
+                                       class="btn btn-outline-primary btn-sm w-100 fw-semibold">
+                                        <i class="fas fa-eye me-1"></i> Details
+                                    </a>
+                                </div>
+                                <div class="col-6" sec:authorize="isAuthenticated()">
+                                    <form th:action="@{/cart/add}" method="post" class="d-inline w-100 add-to-cart-form">
+                                        <input type="hidden" name="productId" th:value="${product.id}">
+                                        <input type="hidden" name="quantity" value="1">
+                                        <button type="submit" class="btn btn-primary btn-sm w-100 fw-semibold" 
+                                                th:disabled="${product.stockQuantity == 0}">
+                                            <i class="fas fa-cart-plus me-1"></i> 
+                                            <span th:if="${product.stockQuantity > 0}">Add</span>
+                                            <span th:if="${product.stockQuantity == 0}">Sold Out</span>
+                                        </button>
+                                    </form>
+                                </div>
+                                <div class="col-6" sec:authorize="!isAuthenticated()">
+                                    <a th:href="@{/login}" class="btn btn-primary btn-sm w-100 fw-semibold">
+                                        <i class="fas fa-sign-in-alt me-1"></i> Login
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -179,17 +266,88 @@
             </div>
         </div>
 
-        <!-- No Products Found Message -->
-        <div th:if="${#lists.isEmpty(products)}" class="text-center py-5">
-            <i class="fas fa-search fa-3x text-muted mb-3"></i>
-            <h3 class="text-muted">No products found</h3>
-            <p class="text-muted">Try adjusting your search or browse our categories.</p>
-            <a th:href="@{/products}" class="btn btn-primary">View All Products</a>
+        <!-- Pagination -->
+        <div class="row mt-5" th:if="${totalPages > 1}">
+            <div class="col-12">
+                <nav aria-label="Product pagination">
+                    <ul class="pagination justify-content-center">
+                        <!-- First Page -->
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/products(page=0, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, category=${selectedCategory}, search=${searchKeyword})}" aria-label="First">
+                                <i class="fas fa-angle-double-left"></i>
+                            </a>
+                        </li>
+                        
+                        <!-- Previous Page -->
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled'">
+                            <a class="page-link" th:href="@{/products(page=${currentPage - 1}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, category=${selectedCategory}, search=${searchKeyword})}" aria-label="Previous">
+                                <i class="fas fa-angle-left"></i>
+                            </a>
+                        </li>
+                        
+                        <!-- Page Numbers -->
+                        <li class="page-item" th:each="pageNum : ${#numbers.sequence(startPage, endPage)}" 
+                            th:classappend="${pageNum == currentPage} ? 'active'">
+                            <a class="page-link" th:href="@{/products(page=${pageNum}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, category=${selectedCategory}, search=${searchKeyword})}" 
+                               th:text="${pageNum + 1}">1</a>
+                        </li>
+                        
+                        <!-- Next Page -->
+                        <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/products(page=${currentPage + 1}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, category=${selectedCategory}, search=${searchKeyword})}" aria-label="Next">
+                                <i class="fas fa-angle-right"></i>
+                            </a>
+                        </li>
+                        
+                        <!-- Last Page -->
+                        <li class="page-item" th:classappend="${currentPage >= totalPages - 1} ? 'disabled'">
+                            <a class="page-link" th:href="@{/products(page=${totalPages - 1}, size=${size}, sortBy=${sortBy}, sortDir=${sortDir}, category=${selectedCategory}, search=${searchKeyword})}" aria-label="Last">
+                                <i class="fas fa-angle-double-right"></i>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+                
+                <!-- Page Info -->
+                <div class="text-center mt-3">
+                    <small class="text-muted">
+                        Page <strong th:text="${currentPage + 1}">1</strong> of <strong th:text="${totalPages}">1</strong>
+                        (<strong th:text="${totalElements}">0</strong> total products)
+                    </small>
+                </div>
+            </div>
         </div>
 
-        <!-- React Component for Product Browser (REST API Integration) -->
-        <div id="react-product-browser" class="mt-5">
-            <h3>Browse Products with React</h3>
+        <!-- Enhanced No Products Found Message -->
+        <div th:if="${#lists.isEmpty(products)}" class="text-center py-5">
+            <div class="mb-4">
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle bg-light" 
+                     style="width: 120px; height: 120px;">
+                    <i class="fas fa-search fa-3x text-muted"></i>
+                </div>
+            </div>
+            <h3 class="fw-bold mb-3">No products found</h3>
+            <p class="text-muted mb-4 lead">We couldn't find any products matching your criteria.<br>
+               Try adjusting your search or browse our categories.</p>
+            <div class="d-flex gap-3 justify-content-center">
+                <a th:href="@{/products}" class="btn btn-primary px-4">
+                    <i class="fas fa-th-large me-2"></i>View All Products
+                </a>
+                <a th:href="@{/products}" class="btn btn-outline-primary px-4">
+                    <i class="fas fa-tags me-2"></i>Browse Categories
+                </a>
+            </div>
+        </div>
+
+        <!-- Enhanced React Component Section -->
+        <div id="react-product-browser" class="mt-5 p-4 rounded-4" style="background: rgba(255, 255, 255, 0.8); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.2);">
+            <div class="text-center mb-4">
+                <h3 class="fw-bold mb-2">
+                    <i class="fab fa-react me-2" style="color: #61dafb;"></i>
+                    Interactive Product Browser
+                </h3>
+                <p class="text-muted">Experience our products with our React-powered browser</p>
+            </div>
             <div id="product-browser-react"></div>
         </div>
     </main>
@@ -217,5 +375,49 @@
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <!-- Custom React Component -->
     <script type="text/babel" th:src="@{/js/product-browser.jsx}"></script>
+    
+    <script>
+        // Update sort order
+        function updateSort() {
+            const sortSelect = document.getElementById('sortSelect');
+            const [sortBy, sortDir] = sortSelect.value.split('_');
+            
+            const url = new URL(window.location);
+            url.searchParams.set('sortBy', sortBy);
+            url.searchParams.set('sortDir', sortDir);
+            url.searchParams.set('page', '0'); // Reset to first page
+            
+            window.location.href = url.toString();
+        }
+        
+        // Update page size
+        function updatePageSize() {
+            const sizeSelect = document.getElementById('sizeSelect');
+            const newSize = sizeSelect.value;
+            
+            const url = new URL(window.location);
+            url.searchParams.set('size', newSize);
+            url.searchParams.set('page', '0'); // Reset to first page
+            
+            window.location.href = url.toString();
+        }
+        
+        // Enhanced form submission for Add to Cart
+        document.querySelectorAll('.add-to-cart-form').forEach(form => {
+            form.addEventListener('submit', function(e) {
+                const button = this.querySelector('button[type="submit"]');
+                const originalText = button.innerHTML;
+                
+                button.disabled = true;
+                button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> Adding...';
+                
+                // Re-enable button after a short delay (in case of errors)
+                setTimeout(() => {
+                    button.disabled = false;
+                    button.innerHTML = originalText;
+                }, 3000);
+            });
+        });
+    </script>
 </body>
 </html>

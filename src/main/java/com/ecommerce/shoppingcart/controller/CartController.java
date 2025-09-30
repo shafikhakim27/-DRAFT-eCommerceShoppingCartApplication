@@ -4,7 +4,6 @@ import com.ecommerce.shoppingcart.model.CartItem;
 import com.ecommerce.shoppingcart.model.User;
 import com.ecommerce.shoppingcart.service.CartService;
 import com.ecommerce.shoppingcart.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -22,7 +21,6 @@ public class CartController {
     private final CartService cartService;
     private final UserService userService;
     
-    @Autowired
     public CartController(CartService cartService, UserService userService) {
         this.cartService = cartService;
         this.userService = userService;

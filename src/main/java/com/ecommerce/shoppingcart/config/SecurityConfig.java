@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .ignoringRequestMatchers("/h2-console/**", "/api/**")
             )
             .headers(headers -> headers
-                .frameOptions().sameOrigin()  // For H2 console
+                .frameOptions(frameOptions -> frameOptions.sameOrigin())  // For H2 console
             );
             
         return http.build();

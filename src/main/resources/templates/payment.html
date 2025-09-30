@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Payment - eCommerce Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/products}">
+                <i class="fas fa-shopping-bag me-2"></i>eCommerce Store
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/products}">Products</a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/cart}">
+                            <i class="fas fa-shopping-cart"></i> Cart
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/orders}">
+                            <i class="fas fa-history"></i> Orders
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <span class="navbar-text me-3">
+                            Welcome, <span sec:authentication="name"></span>!
+                        </span>
+                    </li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link" th:href="@{/login}">
+                            <i class="fas fa-sign-in-alt"></i> Login
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="isAuthenticated()">
+                        <form th:action="@{/logout}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-outline-light btn-sm">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
+                    </li>
+                    <li class="nav-item" sec:authorize="!isAuthenticated()">
+                        <a class="nav-link" th:href="@{/register}">
+                            <i class="fas fa-user-plus"></i> Register
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container my-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- Page Header -->
+                <div class="text-center mb-5">
+                    <h1 class="display-5 fw-bold text-gradient">
+                        <i class="fas fa-credit-card me-3"></i>Payment
+                    </h1>
+                    <p class="lead">Complete your order securely</p>
+                </div>
+
+                <!-- Alerts -->
+                <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                    <i class="fas fa-check-circle me-2"></i>
+                    <span th:text="${success}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <span th:text="${error}"></span>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+
+                <div class="row">
+                    <!-- Order Summary -->
+                    <div class="col-md-6 mb-4">
+                        <div class="card glass-card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-receipt me-2"></i>Order Summary
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="order-info">
+                                    <p><strong>Order #:</strong> <span th:text="${order.id}"></span></p>
+                                    <p><strong>Total Amount:</strong> 
+                                        <span class="price-tag">$<span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)}"></span></span>
+                                    </p>
+                                    <p><strong>Items:</strong> <span th:text="${#lists.size(order.orderItems)}"></span></p>
+                                    <p><strong>Shipping Address:</strong></p>
+                                    <p class="text-muted" th:text="${order.shippingAddress}"></p>
+                                </div>
+                                
+                                <hr>
+                                
+                                <div class="order-items">
+                                    <h6 class="mb-3">Order Items:</h6>
+                                    <div class="item mb-2" th:each="item : ${order.orderItems}">
+                                        <div class="d-flex justify-content-between">
+                                            <span th:text="${item.product.name}"></span>
+                                            <span>
+                                                <span th:text="${item.quantity}"></span> × 
+                                                $<span th:text="${#numbers.formatDecimal(item.price, 1, 2)}"></span>
+                                            </span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payment Form -->
+                    <div class="col-md-6">
+                        <div class="card glass-card">
+                            <div class="card-header">
+                                <h5 class="card-title mb-0">
+                                    <i class="fas fa-lock me-2"></i>Payment Details
+                                </h5>
+                            </div>
+                            <div class="card-body">
+                                <form th:action="@{'/payment/process/' + ${order.id}}" method="post" id="paymentForm">
+                                    <!-- Payment Method Selection -->
+                                    <div class="mb-4">
+                                        <label class="form-label fw-bold">Select Payment Method</label>
+                                        <div class="payment-methods">
+                                            <div class="form-check payment-option" th:each="method : ${paymentMethods}">
+                                                <input class="form-check-input" type="radio" 
+                                                       th:id="${method}" 
+                                                       th:value="${method}" 
+                                                       name="paymentMethod" 
+                                                       required
+                                                       onchange="togglePaymentFields()">
+                                                <label class="form-check-label" th:for="${method}">
+                                                    <i class="payment-icon" th:classappend="${method == 'CREDIT_CARD' ? 'fas fa-credit-card' : 
+                                                                                             method == 'DEBIT_CARD' ? 'fas fa-credit-card' : 
+                                                                                             method == 'DIGITAL_WALLET' ? 'fas fa-wallet' : 
+                                                                                             method == 'PAYPAL' ? 'fab fa-paypal' : 
+                                                                                             method == 'APPLE_PAY' ? 'fab fa-apple-pay' : 
+                                                                                             method == 'GOOGLE_PAY' ? 'fab fa-google-pay' : 'fas fa-credit-card'}"></i>
+                                                    <span th:text="${method.displayName}"></span>
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Card Payment Fields -->
+                                    <div id="cardFields" class="payment-fields d-none">
+                                        <h6 class="mb-3">Card Information</h6>
+                                        <div class="row">
+                                            <div class="col-12 mb-3">
+                                                <label for="cardNumber" class="form-label">Card Number</label>
+                                                <input type="text" class="form-control" id="cardNumber" 
+                                                       placeholder="1234 5678 9012 3456" maxlength="19">
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <label for="expiryDate" class="form-label">Expiry Date</label>
+                                                <input type="text" class="form-control" id="expiryDate" 
+                                                       placeholder="MM/YY" maxlength="5">
+                                            </div>
+                                            <div class="col-6 mb-3">
+                                                <label for="cvv" class="form-label">CVV</label>
+                                                <input type="text" class="form-control" id="cvv" 
+                                                       placeholder="123" maxlength="4">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Digital Wallet Fields -->
+                                    <div id="walletFields" class="payment-fields d-none">
+                                        <h6 class="mb-3">Digital Wallet Information</h6>
+                                        <div class="mb-3">
+                                            <label for="walletType" class="form-label">Wallet Type</label>
+                                            <select class="form-select" id="walletType">
+                                                <option value="">Select wallet type</option>
+                                                <option value="MetaMask">MetaMask</option>
+                                                <option value="Coinbase">Coinbase Wallet</option>
+                                                <option value="TrustWallet">Trust Wallet</option>
+                                                <option value="PayPalWallet">PayPal Wallet</option>
+                                            </select>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="walletAccount" class="form-label">Wallet Account ID</label>
+                                            <input type="text" class="form-control" id="walletAccount" 
+                                                   placeholder="Enter your wallet account ID">
+                                        </div>
+                                    </div>
+
+                                    <!-- PayPal Fields -->
+                                    <div id="paypalFields" class="payment-fields d-none">
+                                        <h6 class="mb-3">PayPal Information</h6>
+                                        <div class="mb-3">
+                                            <label for="paypalEmail" class="form-label">PayPal Email</label>
+                                            <input type="email" class="form-control" id="paypalEmail" 
+                                                   placeholder="your.email@example.com">
+                                        </div>
+                                    </div>
+
+                                    <!-- Apple Pay Fields -->
+                                    <div id="applePayFields" class="payment-fields d-none">
+                                        <h6 class="mb-3">Apple Pay</h6>
+                                        <div class="mb-3">
+                                            <label for="appleDeviceId" class="form-label">Device ID</label>
+                                            <input type="text" class="form-control" id="appleDeviceId" 
+                                                   placeholder="Touch ID will be verified" readonly>
+                                        </div>
+                                    </div>
+
+                                    <!-- Google Pay Fields -->
+                                    <div id="googlePayFields" class="payment-fields d-none">
+                                        <h6 class="mb-3">Google Pay</h6>
+                                        <div class="mb-3">
+                                            <label for="googleDeviceId" class="form-label">Device ID</label>
+                                            <input type="text" class="form-control" id="googleDeviceId" 
+                                                   placeholder="Fingerprint will be verified" readonly>
+                                        </div>
+                                    </div>
+
+                                    <!-- Hidden field for payment details -->
+                                    <input type="hidden" name="paymentDetails" id="paymentDetails">
+
+                                    <div class="d-grid gap-2">
+                                        <button type="submit" class="btn btn-primary btn-lg">
+                                            <i class="fas fa-lock me-2"></i>
+                                            Pay $<span th:text="${#numbers.formatDecimal(order.totalAmount, 1, 2)}"></span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        function togglePaymentFields() {
+            // Hide all payment fields
+            document.querySelectorAll('.payment-fields').forEach(field => {
+                field.classList.add('d-none');
+            });
+            
+            // Get selected payment method
+            const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
+            if (!selectedMethod) return;
+            
+            const method = selectedMethod.value;
+            
+            // Show appropriate fields
+            switch(method) {
+                case 'CREDIT_CARD':
+                case 'DEBIT_CARD':
+                    document.getElementById('cardFields').classList.remove('d-none');
+                    break;
+                case 'DIGITAL_WALLET':
+                    document.getElementById('walletFields').classList.remove('d-none');
+                    break;
+                case 'PAYPAL':
+                    document.getElementById('paypalFields').classList.remove('d-none');
+                    break;
+                case 'APPLE_PAY':
+                    document.getElementById('applePayFields').classList.remove('d-none');
+                    // Simulate device ID
+                    document.getElementById('appleDeviceId').value = 'APPLE-' + Math.random().toString(36).substr(2, 9);
+                    break;
+                case 'GOOGLE_PAY':
+                    document.getElementById('googlePayFields').classList.remove('d-none');
+                    // Simulate device ID
+                    document.getElementById('googleDeviceId').value = 'GOOGLE-' + Math.random().toString(36).substr(2, 9);
+                    break;
+            }
+        }
+        
+        // Format card number input
+        document.getElementById('cardNumber').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\s/g, '').replace(/\D/g, '');
+            let formattedValue = value.replace(/(.{4})/g, '$1 ').trim();
+            e.target.value = formattedValue;
+        });
+        
+        // Format expiry date input
+        document.getElementById('expiryDate').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 2) {
+                value = value.substring(0, 2) + '/' + value.substring(2, 4);
+            }
+            e.target.value = value;
+        });
+        
+        // CVV input validation
+        document.getElementById('cvv').addEventListener('input', function(e) {
+            e.target.value = e.target.value.replace(/\D/g, '');
+        });
+        
+        // Form submission
+        document.getElementById('paymentForm').addEventListener('submit', function(e) {
+            const selectedMethod = document.querySelector('input[name="paymentMethod"]:checked');
+            if (!selectedMethod) {
+                e.preventDefault();
+                alert('Please select a payment method');
+                return;
+            }
+            
+            let paymentDetails = '';
+            const method = selectedMethod.value;
+            
+            switch(method) {
+                case 'CREDIT_CARD':
+                case 'DEBIT_CARD':
+                    const cardNumber = document.getElementById('cardNumber').value.replace(/\s/g, '');
+                    const expiryDate = document.getElementById('expiryDate').value;
+                    const cvv = document.getElementById('cvv').value;
+                    
+                    if (!cardNumber || !expiryDate || !cvv) {
+                        e.preventDefault();
+                        alert('Please fill in all card details');
+                        return;
+                    }
+                    
+                    const [month, year] = expiryDate.split('/');
+                    paymentDetails = `${cardNumber}:${month}:${year}:${cvv}`;
+                    break;
+                    
+                case 'DIGITAL_WALLET':
+                    const walletType = document.getElementById('walletType').value;
+                    const walletAccount = document.getElementById('walletAccount').value;
+                    
+                    if (!walletType || !walletAccount) {
+                        e.preventDefault();
+                        alert('Please fill in wallet details');
+                        return;
+                    }
+                    
+                    paymentDetails = `${walletType}:${walletAccount}`;
+                    break;
+                    
+                case 'PAYPAL':
+                    const paypalEmail = document.getElementById('paypalEmail').value;
+                    
+                    if (!paypalEmail) {
+                        e.preventDefault();
+                        alert('Please enter your PayPal email');
+                        return;
+                    }
+                    
+                    paymentDetails = paypalEmail;
+                    break;
+                    
+                case 'APPLE_PAY':
+                    paymentDetails = document.getElementById('appleDeviceId').value;
+                    break;
+                    
+                case 'GOOGLE_PAY':
+                    paymentDetails = document.getElementById('googleDeviceId').value;
+                    break;
+            }
+            
+            document.getElementById('paymentDetails').value = paymentDetails;
+        });
+    </script>
+</body>
+</html>

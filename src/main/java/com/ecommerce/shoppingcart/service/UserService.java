@@ -2,10 +2,10 @@ package com.ecommerce.shoppingcart.service;
 
 import com.ecommerce.shoppingcart.model.User;
 import com.ecommerce.shoppingcart.repository.UserRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -14,7 +14,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     
-    @Autowired
     public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
@@ -48,6 +47,10 @@ public class UserService {
     
     public boolean existsByUsername(String username) {
         return userRepository.existsByUsername(username);
+    }
+    
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
     }
     
     public boolean existsByEmail(String email) {

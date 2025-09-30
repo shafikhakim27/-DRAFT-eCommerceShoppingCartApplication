@@ -2,7 +2,8 @@ package com.ecommerce.shoppingcart.service;
 
 import com.ecommerce.shoppingcart.model.Product;
 import com.ecommerce.shoppingcart.repository.ProductRepository;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,7 +14,6 @@ public class ProductService {
     
     private final ProductRepository productRepository;
     
-    @Autowired
     public ProductService(ProductRepository productRepository) {
         this.productRepository = productRepository;
     }
@@ -22,12 +22,28 @@ public class ProductService {
         return productRepository.findByActiveTrue();
     }
     
+    public Page<Product> getAllActiveProducts(Pageable pageable) {
+        return productRepository.findByActiveTrue(pageable);
+    }
+    
     public List<Product> getProductsByCategory(Product.Category category) {
         return productRepository.findByActiveTrueAndCategory(category);
     }
     
+    public Page<Product> getProductsByCategory(Product.Category category, Pageable pageable) {
+        return productRepository.findByActiveTrueAndCategory(category, pageable);
+    }
+    
     public List<Product> searchProducts(String keyword) {
         return productRepository.searchByKeyword(keyword);
+    }
+    
+    public Page<Product> searchProducts(String keyword, Pageable pageable) {
+        return productRepository.searchByKeyword(keyword, pageable);
+    }
+    
+    public Page<Product> getAllProductsIncludingInactive(Pageable pageable) {
+        return productRepository.findAll(pageable);
     }
     
     public Optional<Product> getProductById(Long id) {

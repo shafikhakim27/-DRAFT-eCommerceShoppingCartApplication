@@ -5,7 +5,6 @@ import com.ecommerce.shoppingcart.model.User;
 import com.ecommerce.shoppingcart.service.CartService;
 import com.ecommerce.shoppingcart.service.OrderService;
 import com.ecommerce.shoppingcart.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -23,7 +22,6 @@ public class OrderController {
     private final CartService cartService;
     private final UserService userService;
     
-    @Autowired
     public OrderController(OrderService orderService, CartService cartService, UserService userService) {
         this.orderService = orderService;
         this.cartService = cartService;
@@ -74,8 +72,8 @@ public class OrderController {
         
         try {
             Order order = orderService.createOrderFromCart(userOpt.get(), shippingAddress);
-            redirectAttributes.addFlashAttribute("success", "Order placed successfully! Order ID: " + order.getId());
-            return "redirect:/orders/" + order.getId();
+            redirectAttributes.addFlashAttribute("success", "Order created successfully! Please complete payment.");
+            return "redirect:/payment/process/" + order.getId();
         } catch (IllegalArgumentException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage());
             return "redirect:/orders/checkout";

@@ -30,6 +30,9 @@ public class Order {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<OrderItem> orderItems = new ArrayList<>();
     
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Payment payment;
+    
     @Column(name = "shipping_address")
     private String shippingAddress;
     
@@ -91,6 +94,14 @@ public class Order {
     
     public void setOrderItems(List<OrderItem> orderItems) {
         this.orderItems = orderItems;
+    }
+    
+    public Payment getPayment() {
+        return payment;
+    }
+    
+    public void setPayment(Payment payment) {
+        this.payment = payment;
     }
     
     public String getShippingAddress() {

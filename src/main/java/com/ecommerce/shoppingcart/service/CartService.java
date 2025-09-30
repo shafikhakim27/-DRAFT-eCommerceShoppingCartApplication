@@ -4,7 +4,6 @@ import com.ecommerce.shoppingcart.model.CartItem;
 import com.ecommerce.shoppingcart.model.Product;
 import com.ecommerce.shoppingcart.model.User;
 import com.ecommerce.shoppingcart.repository.CartItemRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,7 +17,6 @@ public class CartService {
     private final CartItemRepository cartItemRepository;
     private final ProductService productService;
     
-    @Autowired
     public CartService(CartItemRepository cartItemRepository, ProductService productService) {
         this.cartItemRepository = cartItemRepository;
         this.productService = productService;

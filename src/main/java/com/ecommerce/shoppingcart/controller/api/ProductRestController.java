@@ -2,7 +2,6 @@ package com.ecommerce.shoppingcart.controller.api;
 
 import com.ecommerce.shoppingcart.model.Product;
 import com.ecommerce.shoppingcart.service.ProductService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,7 +15,6 @@ public class ProductRestController {
     
     private final ProductService productService;
     
-    @Autowired
     public ProductRestController(ProductService productService) {
         this.productService = productService;
     }
