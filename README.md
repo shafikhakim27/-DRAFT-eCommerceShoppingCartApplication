@@ -12,12 +12,12 @@ A comprehensive eCommerce Shopping Cart web application built with Spring Boot, 
 - **Purchase History** - View past orders and order details
 
 ### Technology Stack
-- **Backend**: Spring Boot 3.2.0, Spring Security, Spring Data JPA
+- **Backend**: Spring Boot 3.5.6, _Spring Security_, Spring Data JPA
 - **Frontend**: Thymeleaf templates, Bootstrap 5, React.js components
-- **Database**: H2 (development), MySQL (production ready)
+- **Database**: _H2 (development)_, MySQL (production ready)
 - **Build Tool**: Maven
-- **Authentication**: Spring Security with BCrypt password encoding
-
+_- **Authentication**: Spring Security with BCrypt password encoding
+_
 ## 📋 Prerequisites
 
 - Java 17 or higher
