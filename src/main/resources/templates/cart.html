@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart - eCommerce Store</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container">
+            <a class="navbar-brand" th:href="@{/products}">
+                <i class="fas fa-shopping-bag me-2"></i>eCommerce Store
+            </a>
+            
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/products}">Products</a>
+                    </li>
+                </ul>
+                
+                <ul class="navbar-nav">
+                    <li class="nav-item">
+                        <a class="nav-link active" th:href="@{/cart}">
+                            <i class="fas fa-shopping-cart"></i> Cart
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" 
+                                  th:if="${cartCount != null and cartCount > 0}" 
+                                  th:text="${cartCount}">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:href="@{/orders}">
+                            <i class="fas fa-history"></i> Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <span class="navbar-text me-3">
+                            Welcome, <span sec:authentication="name"></span>!
+                        </span>
+                    </li>
+                    <li class="nav-item">
+                        <form th:action="@{/logout}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-outline-light btn-sm">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Alert Messages -->
+    <div class="container mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container my-4">
+        <div class="row">
+            <div class="col">
+                <h1 class="h2 mb-4">
+                    <i class="fas fa-shopping-cart me-2"></i>Shopping Cart
+                </h1>
+                
+                <!-- Cart Items -->
+                <div th:if="${cartItems != null and not #lists.isEmpty(cartItems)}">
+                    <div class="row">
+                        <div class="col-md-8">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Cart Items</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div th:each="item : ${cartItems}" class="row align-items-center mb-3 pb-3 border-bottom">
+                                        <div class="col-md-2">
+                                            <div class="cart-item-image d-flex align-items-center justify-content-center bg-light rounded">
+                                                <i class="fas fa-image fa-2x text-muted" th:if="${item.product.imageUrl == null or item.product.imageUrl == ''}"></i>
+                                                <img th:if="${item.product.imageUrl != null and item.product.imageUrl != ''}" 
+                                                     th:src="${item.product.imageUrl}" 
+                                                     th:alt="${item.product.name}" 
+                                                     class="img-fluid rounded">
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <h6 th:text="${item.product.name}">Product Name</h6>
+                                            <p class="text-muted small mb-1" th:text="${item.product.category}">Category</p>
+                                            <span class="text-primary fw-bold" th:text="'$' + ${item.product.price}">$0.00</span>
+                                        </div>
+                                        <div class="col-md-3">
+                                            <form th:action="@{/cart/update}" method="post" class="d-flex align-items-center">
+                                                <input type="hidden" name="cartItemId" th:value="${item.id}">
+                                                <input type="number" name="quantity" th:value="${item.quantity}" 
+                                                       min="1" max="99" class="form-control quantity-input me-2" 
+                                                       onchange="this.form.submit()">
+                                                <button type="submit" class="btn btn-outline-primary btn-sm">
+                                                    <i class="fas fa-sync"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <div class="text-end">
+                                                <div class="fw-bold text-primary" th:text="'$' + ${item.subtotal}">$0.00</div>
+                                                <form th:action="@{/cart/remove}" method="post" class="mt-2">
+                                                    <input type="hidden" name="cartItemId" th:value="${item.id}">
+                                                    <button type="submit" class="btn btn-outline-danger btn-sm" 
+                                                            onclick="return confirm('Remove this item from cart?')">
+                                                        <i class="fas fa-trash"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Cart Summary -->
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h5 class="mb-0">Order Summary</h5>
+                                </div>
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Items (<span th:text="${cartCount}">0</span>):</span>
+                                        <span th:text="'$' + ${total}">$0.00</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Shipping:</span>
+                                        <span class="text-success">FREE</span>
+                                    </div>
+                                    <hr>
+                                    <div class="d-flex justify-content-between mb-3">
+                                        <strong>Total:</strong>
+                                        <strong class="text-primary" th:text="'$' + ${total}">$0.00</strong>
+                                    </div>
+                                    
+                                    <div class="d-grid gap-2">
+                                        <a th:href="@{/orders/checkout}" class="btn btn-primary">
+                                            <i class="fas fa-credit-card me-2"></i>Proceed to Checkout
+                                        </a>
+                                        <form th:action="@{/cart/clear}" method="post">
+                                            <button type="submit" class="btn btn-outline-danger w-100" 
+                                                    onclick="return confirm('Clear all items from cart?')">
+                                                <i class="fas fa-trash me-2"></i>Clear Cart
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Empty Cart -->
+                <div th:if="${cartItems == null or #lists.isEmpty(cartItems)}" class="text-center py-5">
+                    <i class="fas fa-shopping-cart fa-3x text-muted mb-3"></i>
+                    <h3 class="text-muted">Your cart is empty</h3>
+                    <p class="text-muted">Add some products to your cart to get started.</p>
+                    <a th:href="@{/products}" class="btn btn-primary">
+                        <i class="fas fa-shopping-bag me-2"></i>Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-light mt-5 py-4">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-6">
+                    <h5>eCommerce Store</h5>
+                    <p>Your one-stop shop for quality products.</p>
+                </div>
+                <div class="col-md-6 text-md-end">
+                    <p>&copy; 2024 eCommerce Store. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>
