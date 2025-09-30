@@ -5,7 +5,6 @@ import com.ecommerce.shoppingcart.model.Product;
 import com.ecommerce.shoppingcart.model.User;
 import com.ecommerce.shoppingcart.service.OrderService;
 import com.ecommerce.shoppingcart.service.ProductService;
-import com.ecommerce.shoppingcart.service.ReviewService;
 import com.ecommerce.shoppingcart.service.UserService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -29,14 +28,12 @@ public class AdminController {
     private final ProductService productService;
     private final UserService userService;
     private final OrderService orderService;
-    private final ReviewService reviewService;
     
     public AdminController(ProductService productService, UserService userService, 
-                          OrderService orderService, ReviewService reviewService) {
+                          OrderService orderService) {
         this.productService = productService;
         this.userService = userService;
         this.orderService = orderService;
-        this.reviewService = reviewService;
     }
     
     // Check admin access
