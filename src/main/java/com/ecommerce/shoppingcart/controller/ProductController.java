@@ -33,7 +33,7 @@ public class ProductController {
         this.reviewService = reviewService;
     }
     
-    @GetMapping({"/", "/products"})
+    @GetMapping("/products")
     public String listProducts(
             @RequestParam(required = false) Product.Category category,
             @RequestParam(required = false) String search,

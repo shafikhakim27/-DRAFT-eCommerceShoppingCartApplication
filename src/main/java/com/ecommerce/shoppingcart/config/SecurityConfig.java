@@ -28,13 +28,13 @@ public class SecurityConfig {
             )
             .formLogin(form -> form
                 .loginPage("/login")
-                .defaultSuccessUrl("/products", true)
+                .defaultSuccessUrl("/", true)
                 .failureUrl("/login?error")
                 .permitAll()
             )
             .logout(logout -> logout
                 .logoutUrl("/logout")
-                .logoutSuccessUrl("/products")
+                .logoutSuccessUrl("/")
                 .permitAll()
             )
             .csrf(csrf -> csrf
