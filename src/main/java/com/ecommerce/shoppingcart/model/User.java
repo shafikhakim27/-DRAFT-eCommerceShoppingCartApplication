@@ -137,3 +137,19 @@ public class User {
         USER, ADMIN
     }
 }
+
+// // user attributes
+// id, username, email, password, firstName, lastName, role (USER or ADMIN)
+// // attribute types
+// Long, String, String, String, String, String, Enum
+// // user relationships
+// OneToMany with CartItem, OneToMany with Order
+// // user methods
+// getters and setters for all attributes, getFullName()
+// // getters and setters
+// // getId, setId, getUsername, setUsername, getEmail, setEmail, getPassword, setPassword
+// // getFirstName, setFirstName, getLastName, setLastName, getRole, setRole
+
+// // user validations
+// @NotBlank for username, email, password, firstName, lastName
+// @Size for username (3-50), password (min 6)

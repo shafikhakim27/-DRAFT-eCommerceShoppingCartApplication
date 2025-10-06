@@ -76,3 +76,6 @@ public class CartItem {
         return BigDecimal.ZERO;
     }
 }
+// cartitem attributes: id, user, product, quantity
+// cartitem methods: getId, setId, getUser, setUser, getProduct, setProduct, getQuantity, setQuantity, getSubtotal
+// cart item relationships: many-to-one with User, many-to-one with Product
